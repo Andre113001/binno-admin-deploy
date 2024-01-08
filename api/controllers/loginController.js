@@ -5,6 +5,11 @@ const hash = require('sha256');
 
 // Reusable function to authenticate user and generate token
 const authenticateUser = async (accessKey, password) => {
+    // Ensure accessKey is provided and not falsy
+    if (!accessKey) {
+        return Promise.resolve({ error: 'Access key is required' });
+    }
+
     const hashedAccesskey = hash(accessKey).toString('base64');
 
     return new Promise((resolve, reject) => {
@@ -45,6 +50,7 @@ const authenticateUser = async (accessKey, password) => {
         );
     });
 };
+
 
 // Controller to handle login request
 const loginController = async (req, res) => {
