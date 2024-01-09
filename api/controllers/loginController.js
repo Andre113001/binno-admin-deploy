@@ -41,6 +41,9 @@ const authenticateUser = async (accessKey, password) => {
                         process.env.JWT_SECRET_KEY,
                         { expiresIn: '1h' }
                     );
+                    
+                    // Update token to database
+                    db.query("UPDATE member_i SET member_access = ? WHERE member_id = ?", [hash(token), result[0].member_id]);
 
                     resolve({ token });
                 } else {
