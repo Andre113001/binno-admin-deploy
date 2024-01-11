@@ -29,12 +29,14 @@ const getRoute = require('./routes/getRoute');
 const loginRoute = require('./routes/loginRoute');
 const elementRoute = require('./routes/elementRoute');
 const scheduleRoute = require('./routes/scheduleRoute');
+const applicationRoute = require('./routes/applicationRoute');
 
 // Use Routes
 app.use('/api/login', loginRoute);
 app.use('/api/elements', elementRoute);
 app.use('/api/get', getRoute);
 app.use('/api/schedule', scheduleRoute);
+app.use('/api/application', applicationRoute);
 
 // Server Listener
 app.listen(port, () => {
