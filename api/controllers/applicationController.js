@@ -3,6 +3,7 @@ const db = require('../../database/db')
 //Middlewares
 const sanitizeId = require('../middlewares/querySanitizerMiddleware')
 const uniqueId = require('../middlewares/uniqueIdGeneratorMiddleware')
+const { generateAndHash } = require('../middlewares/randomGenerator')
 const fs = require('fs')
 const path = require('path')
 
@@ -102,7 +103,22 @@ const getApplicationDetails = async (req, res) => {
 const setApprovalStatus = async (req, res) => {
     const { appId, isApproved = true, rejectReason = '' } = req.body
     try {
-        if (isApproved) {
+        if (!!isApproved) {
+            const fetchedData = await new Promise((resolve, reject) => {
+                db.query(
+                    `DELETE FROM application_i WHERE app_id = ${appId}`,
+                    (err, data) => {
+                        if (err) {
+                            reject(err)
+                        } else {
+                            resolve(data)
+                        }
+                    }
+                )
+            })
+
+            res.send('Deleted application.')
+        } else {
             const fetchedData = await new Promise((resolve, reject) => {
                 db.query(
                     `SELECT * FROM application_i WHERE app_id = '${appId}'`,
@@ -127,8 +143,21 @@ const setApprovalStatus = async (req, res) => {
                     .slice(0, 19)
                     .replace('T', ' ')
 
+                const newId = uniqueId.uniqueIdGenerator()
                 db.query(
-                    `INSERT INTO member_settings (setting_institution, setting_address, setting_datecreated,setting_status) VALUES ('${fetchedData.app_institution}','${fetchedData.app_address}', '${formattedDate}', '1')`,
+                    `INSERT INTO email_i (email_id, email_datecreated, email_address, email_subscribe, email_flag) VALUES ('${newId}','${formattedDate}', '${fetchedData.app_email}', '1', '1')`,
+                    (err, data) => {
+                        if (err) {
+                            reject(err)
+                        } else {
+                            resolve(data)
+                        }
+                    }
+                )
+
+                const contactId = uniqueId.uniqueIdGenerator()
+                db.query(
+                    `INSERT INTO member_contact (contact_id, contact_datecreated, contact_email) VALUES ('${contactId}', '${formattedDate}', '${newId}')`,
                     (err, data) => {
                         if (err) {
                             reject(err)
@@ -136,8 +165,78 @@ const setApprovalStatus = async (req, res) => {
                     }
                 )
 
+                const insertMemberSettings = () => {
+                    return new Promise((resolve, reject) => {
+                        db.query(
+                            `INSERT INTO member_settings (setting_institution, setting_address, setting_datecreated, setting_status) VALUES (?, ?, ?, '1')`,
+                            [
+                                fetchedData.app_institution,
+                                fetchedData.app_address,
+                                formattedDate,
+                            ],
+                            (err, result) => {
+                                if (err) {
+                                    reject(err)
+                                } else {
+                                    resolve(result.insertId)
+                                }
+                            }
+                        )
+                    })
+                }
+
+                insertMemberSettings()
+                    .then((settingsId) => {
+                        const memberId = uniqueId.uniqueIdGenerator()
+                        const membertype =
+                            fetchedData.app_type === 'Enabler' ? 2 : 1
+
+                        generateAndHash()
+                            .then((result) => {
+                                // console.log(
+                                //     'Random Digits:',
+                                //     result.randomDigits
+                                // )
+
+                                db.query(
+                                    `INSERT INTO member_i (member_id, member_type, member_datecreated, member_contact_id, member_setting,member_accesskey,member_password) VALUES (?, ?, ?, ?, ?,?,?)`,
+                                    [
+                                        memberId,
+                                        membertype,
+                                        formattedDate,
+                                        contactId,
+                                        /* Use settingsId here */ settingsId,
+                                        result.hashedSHA,
+                                        result.hashedBcrypt,
+                                    ],
+                                    (err, data) => {
+                                        if (err) {
+                                            console.error(
+                                                'Error inserting into member_i:',
+                                                err
+                                            )
+                                        } else {
+                                            console.log(
+                                                'Data inserted successfully:',
+                                                data
+                                            )
+                                        }
+                                    }
+                                )
+                            })
+                            .catch((error) => {
+                                console.error('Error:', error)
+                            })
+                    })
+                    .catch((error) => {
+                        console.error(
+                            'Error inserting into member_settings:',
+                            error
+                        )
+                    })
+
                 db.query(
-                    `INSERT INTO email_i (email_datecreated, email_address, email_subscribe, email_flag) VALUES ('${formattedDate}', '${fetchedData.app_email}', '1', '1')`,
+                    `DELETE FROM application_i WHERE app_id = ${appId}`,
                     (err, data) => {
                         if (err) {
                             reject(err)

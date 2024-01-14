@@ -14,6 +14,6 @@ router.post(
 )
 router.get('/', applicationController.getApplications)
 router.get('/:appId', applicationController.getApplicationDetails)
-router.patch('/:appId', applicationController.setApprovalStatus)
+router.patch('/', applicationController.setApprovalStatus)
 
 module.exports = router
