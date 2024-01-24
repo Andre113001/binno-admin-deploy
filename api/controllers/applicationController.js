@@ -9,7 +9,7 @@ const path = require('path')
 
 const uploadDocuments = async (req, res) => {
     // Assuming you have the applicationId available in your request or somewhere
-    const { appId } = req.body // Replace with your logic to get the applicationId
+    const { id } = req.body // Replace with your logic to get the applicationId
 
     // Path to the destination folder
     const destinationFolder = `./private/docs/application/${appId}`
