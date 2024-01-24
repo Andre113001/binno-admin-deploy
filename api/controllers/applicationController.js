@@ -10,27 +10,31 @@ const path = require('path')
 const uploadDocuments = async (req, res) => {
     try {
         // Assuming you have the applicationId available in your request or somewhere
-        const { id, email, institution, address, type, classification } = req.body; // Replace with your logic to get the applicationId
+        const { id, email, institution, address, type, classification } =
+            req.body // Replace with your logic to get the applicationId
 
         // Path to the destination folder
-        const destinationFolder = `./private/docs/application/${id}`;
+        const destinationFolder = `./private/docs/application/${id}`
 
         // Create the destination folder if it doesn't exist
         if (!fs.existsSync(destinationFolder)) {
-            fs.mkdirSync(destinationFolder, { recursive: true });
+            fs.mkdirSync(destinationFolder, { recursive: true })
         }
 
         // Process each uploaded file
         req.files.forEach((file, index) => {
-            const originalName = file.originalname;
-            const ext = path.extname(originalName);
+            const originalName = file.originalname
+            const ext = path.extname(originalName)
 
             // Generate a new file name based on the applicationId
-            const newFileName = `${String(id)}_${index + 1}${String(ext)}`;
+            const newFileName = `${String(id)}_${index + 1}${String(ext)}`
 
             // Move the file to the destination folder
-            fs.writeFileSync(path.join(destinationFolder, newFileName), file.buffer);
-        });
+            fs.writeFileSync(
+                path.join(destinationFolder, newFileName),
+                file.buffer
+            )
+        })
 
         // Insert into the database after files have been successfully uploaded
         db.query(
@@ -42,22 +46,21 @@ const uploadDocuments = async (req, res) => {
                 address,
                 type,
                 classification,
-                destinationFolder
+                destinationFolder,
             ],
             (insertError, insertResult) => {
                 if (insertResult.affectedRows > 0) {
-                    return res.json({ result: true });
+                    return res.json({ result: true })
                 } else {
-                    return res.json({ result: false });
+                    return res.json({ result: false })
                 }
             }
-        );
+        )
     } catch (error) {
-        console.error('Error uploading documents:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error uploading documents:', error)
+        return res.status(500).json({ error: 'Internal Server Error' })
     }
-};
-
+}
 
 const getApplications = async (req, res) => {
     try {
@@ -79,30 +82,50 @@ const getApplications = async (req, res) => {
 }
 const getApplicationUploads = async (req, res) => {
     const { appId } = req.params
-    try {
-        const apps = await new Promise((resolve, reject) => {
-            db.query(
-                `SELECT * FROM application_i WHERE app_id = ?`,
-                [appId],
-                (err, data) => {
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve(data)
-                    }
-                }
-            )
-        })
 
-        return res.status(200).json(apps)
-    } catch (error) {
-        console.error(error)
-        return res.status(500).json({ error: 'Internal server error' })
+    const appDocsPath = path.resolve(`./private/docs/application/${appId}`)
+
+    // Check if the directory exists
+    if (fs.existsSync(appDocsPath) && fs.statSync(appDocsPath).isDirectory()) {
+        // Read the contents of the directory
+        fs.readdir(appDocsPath, (err, files) => {
+            if (err) {
+                console.error('Error reading directory:', err)
+                res.status(500).send('Internal Server Error')
+                return
+            }
+
+            // Send the list of files as a response
+            res.json({ files })
+        })
+    } else {
+        // Directory not found
+        res.status(404).send('Directory not found')
     }
 }
 
 const getImageBlob = (imagePath) => {
     return fs.readFileSync(imagePath)
+}
+
+const getPdf = async (req, res) => {
+    const { appId, fileName } = req.params
+
+    const appDocsPath = path.resolve('./private/docs/application')
+    const filePath = path.join(appDocsPath, appId, fileName)
+    console.log(appDocsPath)
+
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+        // Set the appropriate content type for a PDF file
+        res.contentType('application/pdf')
+
+        // Send the file as a response
+        res.sendFile(filePath)
+    } else {
+        // File not found
+        res.status(404).send('File not found')
+    }
 }
 
 const getApplicationDetails = async (req, res) => {
@@ -311,4 +334,5 @@ module.exports = {
     getApplicationDetails,
     setApprovalStatus,
     getApplicationUploads,
+    getPdf,
 }
