@@ -52,6 +52,29 @@ const getApplications = async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' })
     }
 }
+const getApplicationUploads = async (req, res) => {
+    const { appId } = req.params
+    try {
+        const apps = await new Promise((resolve, reject) => {
+            db.query(
+                `SELECT * FROM application_i WHERE app_id = ?`,
+                [appId],
+                (err, data) => {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve(data)
+                    }
+                }
+            )
+        })
+
+        return res.status(200).json(apps)
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: 'Internal server error' })
+    }
+}
 
 const getImageBlob = (imagePath) => {
     return fs.readFileSync(imagePath)
@@ -262,4 +285,5 @@ module.exports = {
     getApplications,
     getApplicationDetails,
     setApprovalStatus,
+    getApplicationUploads,
 }

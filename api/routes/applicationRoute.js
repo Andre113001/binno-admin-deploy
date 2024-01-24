@@ -14,6 +14,7 @@ router.post(
 )
 router.get('/', applicationController.getApplications)
 router.get('/:appId', applicationController.getApplicationDetails)
+router.get('/upload/:appId', applicationController.getApplicationUploads)
 router.patch('/', applicationController.setApprovalStatus)
 
 module.exports = router
