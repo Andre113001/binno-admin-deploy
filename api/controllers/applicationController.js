@@ -8,31 +8,56 @@ const fs = require('fs')
 const path = require('path')
 
 const uploadDocuments = async (req, res) => {
-    // Assuming you have the applicationId available in your request or somewhere
-    const { id } = req.body // Replace with your logic to get the applicationId
+    try {
+        // Assuming you have the applicationId available in your request or somewhere
+        const { id, email, institution, address, type, classification } = req.body; // Replace with your logic to get the applicationId
 
-    // Path to the destination folder
-    const destinationFolder = `./private/docs/application/${appId}`
+        // Path to the destination folder
+        const destinationFolder = `./private/docs/application/${id}`;
 
-    // Create the destination folder if it doesn't exist
-    if (!fs.existsSync(destinationFolder)) {
-        fs.mkdirSync(destinationFolder, { recursive: true })
+        // Create the destination folder if it doesn't exist
+        if (!fs.existsSync(destinationFolder)) {
+            fs.mkdirSync(destinationFolder, { recursive: true });
+        }
+
+        // Process each uploaded file
+        req.files.forEach((file, index) => {
+            const originalName = file.originalname;
+            const ext = path.extname(originalName);
+
+            // Generate a new file name based on the applicationId
+            const newFileName = `${String(id)}_${index + 1}${String(ext)}`;
+
+            // Move the file to the destination folder
+            fs.writeFileSync(path.join(destinationFolder, newFileName), file.buffer);
+        });
+
+        // Insert into the database after files have been successfully uploaded
+        db.query(
+            'INSERT INTO application_i (app_id, app_dateadded, app_institution, app_email, app_address, app_type, app_class, app_docs_path) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)',
+            [
+                id,
+                institution,
+                email,
+                address,
+                type,
+                classification,
+                destinationFolder
+            ],
+            (insertError, insertResult) => {
+                if (insertResult.affectedRows > 0) {
+                    return res.json({ result: true });
+                } else {
+                    return res.json({ result: false });
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Error uploading documents:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
+};
 
-    // Process each uploaded file
-    req.files.forEach((file, index) => {
-        const originalName = file.originalname
-        const ext = path.extname(originalName)
-
-        // Generate a new file name based on the applicationId
-        const newFileName = `${String(appId)}_${index + 1}${String(ext)}`
-
-        // Move the file to the destination folder
-        fs.writeFileSync(path.join(destinationFolder, newFileName), file.buffer)
-    })
-
-    res.status(200).send('Files uploaded successfully!')
-}
 
 const getApplications = async (req, res) => {
     try {
