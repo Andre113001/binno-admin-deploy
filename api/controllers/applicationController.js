@@ -284,6 +284,8 @@ const setApprovalStatus = async (req, res) => {
 
                         generateAndHash()
                             .then((result) => {
+                                access_key = result.hashedSHA
+                                member_password = result.hashedBcrypt
                                 db.query(
                                     `INSERT INTO member_i (member_id, member_type, member_datecreated, member_contact_id, member_setting,member_accesskey,member_password) VALUES (?, ?, ?, ?, ?,?,?)`,
                                     [
@@ -310,9 +312,6 @@ const setApprovalStatus = async (req, res) => {
                                     }
                                 )
                                 console.log(result)
-
-                                access_key = result.hashedSHA
-                                member_password = result.hashedBcrypt
                             })
                             .catch((error) => {
                                 console.log('Error:', error)
