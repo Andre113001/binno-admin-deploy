@@ -13,7 +13,7 @@ const uploadDocuments = async (req, res) => {
         const { id, email, institution, address, type, classification } = req.body; // Replace with your logic to get the applicationId
 
         // Path to the destination folder
-        const destinationFolder = `./private/docs/application/${id}`;
+        const destinationFolder = `/private/docs/application/${id}`;
 
         // Create the destination folder if it doesn't exist
         if (!fs.existsSync(destinationFolder)) {
