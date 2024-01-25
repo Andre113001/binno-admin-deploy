@@ -314,11 +314,11 @@ const setApprovalStatus = async (req, res) => {
                                 member_password = result.hashedBcrypt
                             })
                             .catch((error) => {
-                                console.error('Error:', error)
+                                console.log('Error:', error)
                             })
                     })
                     .catch((error) => {
-                        console.error(
+                        console.log(
                             'Error inserting into member_settings:',
                             error
                         )
