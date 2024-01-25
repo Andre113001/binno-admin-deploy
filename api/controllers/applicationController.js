@@ -186,7 +186,7 @@ const getApplicationDetails = async (req, res) => {
 const setApprovalStatus = async (req, res) => {
     const { appId, isApproved = true, rejectReason = '' } = req.body
     try {
-        if (!!isApproved) {
+        if (!isApproved) {
             const fetchedData = await new Promise((resolve, reject) => {
                 db.query(
                     `DELETE FROM application_i WHERE app_id = ?`,
