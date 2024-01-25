@@ -15,7 +15,7 @@ router.post(
 router.get('/', applicationController.getApplications)
 router.get('/:appId', applicationController.getApplicationDetails)
 router.get('/upload/:appId', applicationController.getApplicationUploads)
-router.get('/upload/:appId/:fileName', applicationController.getPdf)
+router.get('/upload/:appId/:fileName', applicationController.getFile)
 router.patch('/', applicationController.setApprovalStatus)
 
 module.exports = router
