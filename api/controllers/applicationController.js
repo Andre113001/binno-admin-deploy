@@ -336,7 +336,7 @@ const setApprovalStatus = async (req, res) => {
         // return res.status(200).json(apps)
     } catch (error) {
         console.error(error)
-        return res.status(500).json({ error: 'Internal server error' })
+        return res.status(500).json({ error: error })
     }
 }
 
