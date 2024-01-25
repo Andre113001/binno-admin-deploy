@@ -254,7 +254,7 @@ const setApprovalStatus = async (req, res) => {
                 const insertMemberSettings = () => {
                     return new Promise((resolve, reject) => {
                         db.query(
-                            `INSERT INTO member_settings (setting_institution, setting_address, setting_datecreated, setting_status) VALUES (?, ?, ?, '1')`,
+                            `INSERT INTO member_settings (setting_bio, setting_institution, setting_address, setting_datecreated, setting_status) VALUES (NULL,?, ?, ?, '1')`,
                             [
                                 fetchedData.app_institution,
                                 fetchedData.app_address,
