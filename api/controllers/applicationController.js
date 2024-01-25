@@ -6,31 +6,36 @@ const uniqueId = require('../middlewares/uniqueIdGeneratorMiddleware')
 const { generateAndHash } = require('../middlewares/randomGenerator')
 const fs = require('fs')
 const path = require('path')
+const mime = require('mime-types')
 
 const uploadDocuments = async (req, res) => {
     try {
         // Assuming you have the applicationId available in your request or somewhere
-        const { id, email, institution, address, type, classification } = req.body; // Replace with your logic to get the applicationId
+        const { id, email, institution, address, type, classification } =
+            req.body // Replace with your logic to get the applicationId
 
         // Path to the destination folder
-        const destinationFolder = `/private/docs/application/${id}`;
+        const destinationFolder = `./private/docs/application/${id}`
 
         // Create the destination folder if it doesn't exist
         if (!fs.existsSync(destinationFolder)) {
-            fs.mkdirSync(destinationFolder, { recursive: true });
+            fs.mkdirSync(destinationFolder, { recursive: true })
         }
 
         // Process each uploaded file
         req.files.forEach((file, index) => {
-            const originalName = file.originalname;
-            const ext = path.extname(originalName);
+            const originalName = file.originalname
+            const ext = path.extname(originalName)
 
             // Generate a new file name based on the applicationId
-            const newFileName = `${String(id)}_${index + 1}${String(ext)}`;
+            const newFileName = `${String(id)}_${index + 1}${String(ext)}`
 
             // Move the file to the destination folder
-            fs.writeFileSync(path.join(destinationFolder, newFileName), file.buffer);
-        });
+            fs.writeFileSync(
+                path.join(destinationFolder, newFileName),
+                file.buffer
+            )
+        })
 
         // Insert into the database after files have been successfully uploaded
         db.query(
@@ -42,22 +47,21 @@ const uploadDocuments = async (req, res) => {
                 address,
                 type,
                 classification,
-                destinationFolder
+                destinationFolder,
             ],
             (insertError, insertResult) => {
                 if (insertResult.affectedRows > 0) {
-                    return res.json({ result: true });
+                    return res.json({ result: true })
                 } else {
-                    return res.json({ result: false });
+                    return res.json({ result: false })
                 }
             }
-        );
+        )
     } catch (error) {
-        console.error('Error uploading documents:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error uploading documents:', error)
+        return res.status(500).json({ error: 'Internal Server Error' })
     }
-};
-
+}
 
 const getApplications = async (req, res) => {
     try {
@@ -77,9 +81,63 @@ const getApplications = async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' })
     }
 }
+const getApplicationUploads = async (req, res) => {
+    const { appId } = req.params
+
+    const appDocsPath = path.resolve(`./private/docs/application/${appId}`)
+
+    // Check if the directory exists
+    if (fs.existsSync(appDocsPath) && fs.statSync(appDocsPath).isDirectory()) {
+        // Read the contents of the directory
+        fs.readdir(appDocsPath, (err, files) => {
+            if (err) {
+                console.error('Error reading directory:', err)
+                res.status(500).send('Internal Server Error')
+                return
+            }
+
+            // Send the list of files as a response
+            res.json({ files })
+        })
+    } else {
+        // Directory not found
+        res.status(404).send('Directory not found')
+    }
+}
 
 const getImageBlob = (imagePath) => {
     return fs.readFileSync(imagePath)
+}
+
+const getFile = async (req, res) => {
+    const { appId, fileName } = req.params
+    const appDocsPath = path.resolve('./private/docs/application')
+    const filePath = path.join(appDocsPath, appId, fileName)
+    console.log(appDocsPath)
+
+    const mimeType = mime.lookup(fileName)
+
+    if (mimeType) {
+        if (mimeType.includes('image')) {
+            const img = getImageBlob(filePath)
+            res.send(img)
+        } else if (mimeType.includes('pdf')) {
+            if (fs.existsSync(filePath)) {
+                res.contentType('application/pdf')
+
+                res.sendFile(filePath)
+            } else {
+                // File not found
+                res.status(404).send('File not found')
+            }
+        } else {
+            // Unsupported file type
+            res.status(400).send('Unsupported file type')
+        }
+    } else {
+        // Unable to determine MIME type
+        res.status(400).send('Unable to determine file type')
+    }
 }
 
 const getApplicationDetails = async (req, res) => {
@@ -128,10 +186,11 @@ const getApplicationDetails = async (req, res) => {
 const setApprovalStatus = async (req, res) => {
     const { appId, isApproved = true, rejectReason = '' } = req.body
     try {
-        if (!!isApproved) {
+        if (!isApproved) {
             const fetchedData = await new Promise((resolve, reject) => {
                 db.query(
-                    `DELETE FROM application_i WHERE app_id = ${appId}`,
+                    `DELETE FROM application_i WHERE app_id = ?`,
+                    [appId],
                     (err, data) => {
                         if (err) {
                             reject(err)
@@ -161,6 +220,11 @@ const setApprovalStatus = async (req, res) => {
                 return
             }
 
+            let email = fetchedData.app_email
+            let app_institution = fetchedData.app_institution
+            let access_key = ''
+            let member_password = ''
+
             const insertedData = await new Promise((resolve, reject) => {
                 const currentDate = new Date()
                 const formattedDate = currentDate
@@ -186,6 +250,8 @@ const setApprovalStatus = async (req, res) => {
                     (err, data) => {
                         if (err) {
                             reject(err)
+                        } else {
+                            resolve(data)
                         }
                     }
                 )
@@ -193,7 +259,7 @@ const setApprovalStatus = async (req, res) => {
                 const insertMemberSettings = () => {
                     return new Promise((resolve, reject) => {
                         db.query(
-                            `INSERT INTO member_settings (setting_institution, setting_address, setting_datecreated, setting_status) VALUES (?, ?, ?, '1')`,
+                            `INSERT INTO member_settings (setting_bio, setting_institution, setting_address, setting_datecreated, setting_status, setting_profilepic) VALUES ('Welcome to BiNNO!',?, ?, ?, '1', '')`,
                             [
                                 fetchedData.app_institution,
                                 fetchedData.app_address,
@@ -218,11 +284,6 @@ const setApprovalStatus = async (req, res) => {
 
                         generateAndHash()
                             .then((result) => {
-                                // console.log(
-                                //     'Random Digits:',
-                                //     result.randomDigits
-                                // )
-
                                 db.query(
                                     `INSERT INTO member_i (member_id, member_type, member_datecreated, member_contact_id, member_setting,member_accesskey,member_password) VALUES (?, ?, ?, ?, ?,?,?)`,
                                     [
@@ -248,6 +309,9 @@ const setApprovalStatus = async (req, res) => {
                                         }
                                     }
                                 )
+
+                                access_key = result.hashedSHA
+                                member_password = result.hashedBcrypt
                             })
                             .catch((error) => {
                                 console.error('Error:', error)
@@ -261,7 +325,8 @@ const setApprovalStatus = async (req, res) => {
                     })
 
                 db.query(
-                    `DELETE FROM application_i WHERE app_id = ${appId}`,
+                    `DELETE FROM application_i WHERE app_id = ?`,
+                    [appId],
                     (err, data) => {
                         if (err) {
                             reject(err)
@@ -272,13 +337,18 @@ const setApprovalStatus = async (req, res) => {
                 )
             })
 
-            return res.status(200).json(insertedData)
+            return res.status(200).json({
+                email: email,
+                access_key: access_key,
+                member_password: member_password,
+                institution: institution,
+            })
         }
 
         // return res.status(200).json(apps)
     } catch (error) {
         console.error(error)
-        return res.status(500).json({ error: 'Internal server error' })
+        return res.status(500).json({ error: error })
     }
 }
 
@@ -287,4 +357,6 @@ module.exports = {
     getApplications,
     getApplicationDetails,
     setApprovalStatus,
+    getApplicationUploads,
+    getFile,
 }
