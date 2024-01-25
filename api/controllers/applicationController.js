@@ -334,6 +334,7 @@ const setApprovalStatus = async (req, res) => {
                                     access_key: access_key,
                                     member_password: member_password,
                                     institution: app_institution,
+                                    unhashed: result.randomDigits,
                                 })
                             })
                             .catch((error) => {
