@@ -309,6 +309,7 @@ const setApprovalStatus = async (req, res) => {
                                         }
                                     }
                                 )
+                                console.log(result)
 
                                 access_key = result.hashedSHA
                                 member_password = result.hashedBcrypt
