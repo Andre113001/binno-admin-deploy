@@ -111,7 +111,6 @@ const getImageBlob = (imagePath) => {
 const getFile = async (req, res) => {
     const { appId, fileName } = req.params
     const mimeType = mime.lookup(fileName)
-    res.send(mimeType)
     const appDocsPath = path.resolve('./private/docs/application')
     const filePath = path.join(appDocsPath, appId, fileName)
     console.log(appDocsPath)
