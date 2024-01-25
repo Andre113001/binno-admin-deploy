@@ -220,6 +220,11 @@ const setApprovalStatus = async (req, res) => {
                 return
             }
 
+            let email = fetchedData.app_email
+            let app_institution = fetchedData.app_institution
+            let access_key = ''
+            let member_password = ''
+
             const insertedData = await new Promise((resolve, reject) => {
                 const currentDate = new Date()
                 const formattedDate = currentDate
@@ -279,20 +284,6 @@ const setApprovalStatus = async (req, res) => {
 
                         generateAndHash()
                             .then((result) => {
-                                // console.log(
-                                //     'Random Digits:',
-                                //     result.randomDigits
-                                // )
-                                console.log([
-                                    memberId,
-                                    membertype,
-                                    formattedDate,
-                                    contactId,
-                                    /* Use settingsId here */ settingsId,
-                                    result.hashedSHA,
-                                    result.hashedBcrypt,
-                                ])
-
                                 db.query(
                                     `INSERT INTO member_i (member_id, member_type, member_datecreated, member_contact_id, member_setting,member_accesskey,member_password) VALUES (?, ?, ?, ?, ?,?,?)`,
                                     [
@@ -318,6 +309,9 @@ const setApprovalStatus = async (req, res) => {
                                         }
                                     }
                                 )
+
+                                access_key = result.hashedSHA
+                                member_password = result.hashedBcrypt
                             })
                             .catch((error) => {
                                 console.error('Error:', error)
@@ -343,7 +337,12 @@ const setApprovalStatus = async (req, res) => {
                 )
             })
 
-            return res.status(200).json(insertedData)
+            return res.status(200).json({
+                email: email,
+                access_key: access_key,
+                member_password: member_password,
+                institution: institution,
+            })
         }
 
         // return res.status(200).json(apps)
