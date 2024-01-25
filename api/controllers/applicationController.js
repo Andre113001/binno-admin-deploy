@@ -276,6 +276,18 @@ const setApprovalStatus = async (req, res) => {
                     })
                 }
 
+                db.query(
+                    `DELETE FROM application_i WHERE app_id = ?`,
+                    [appId],
+                    (err, data) => {
+                        if (err) {
+                            reject(err)
+                        } else {
+                            resolve(data)
+                        }
+                    }
+                )
+
                 insertMemberSettings()
                     .then((settingsId) => {
                         const memberId = uniqueId.uniqueIdGenerator()
@@ -315,7 +327,14 @@ const setApprovalStatus = async (req, res) => {
                                         }
                                     }
                                 )
-                                console.log(result)
+                                // console.log(result)
+
+                                return res.status(200).json({
+                                    email: email,
+                                    access_key: access_key,
+                                    member_password: member_password,
+                                    institution: app_institution,
+                                })
                             })
                             .catch((error) => {
                                 console.log('Error:', error)
@@ -327,25 +346,6 @@ const setApprovalStatus = async (req, res) => {
                             error
                         )
                     })
-
-                db.query(
-                    `DELETE FROM application_i WHERE app_id = ?`,
-                    [appId],
-                    (err, data) => {
-                        if (err) {
-                            reject(err)
-                        } else {
-                            resolve(data)
-                        }
-                    }
-                )
-            }).then(() => {
-                return res.status(200).json({
-                    email: email,
-                    access_key: access_key,
-                    member_password: member_password,
-                    institution: app_institution,
-                })
             })
         }
 
