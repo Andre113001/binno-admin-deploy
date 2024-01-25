@@ -342,7 +342,7 @@ const setApprovalStatus = async (req, res) => {
                 email: email,
                 access_key: access_key,
                 member_password: member_password,
-                institution: institution,
+                institution: app_institution,
             })
         }
 
