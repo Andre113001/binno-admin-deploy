@@ -319,7 +319,8 @@ const setApprovalStatus = async (req, res) => {
                     })
 
                 db.query(
-                    `DELETE FROM application_i WHERE app_id = ${appId}`,
+                    `DELETE FROM application_i WHERE app_id = ?`,
+                    [appId],
                     (err, data) => {
                         if (err) {
                             reject(err)
