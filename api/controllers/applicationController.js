@@ -6,6 +6,7 @@ const uniqueId = require('../middlewares/uniqueIdGeneratorMiddleware')
 const { generateAndHash } = require('../middlewares/randomGenerator')
 const fs = require('fs')
 const path = require('path')
+const mime = require('mime-types')
 
 const uploadDocuments = async (req, res) => {
     try {
@@ -110,21 +111,32 @@ const getImageBlob = (imagePath) => {
 
 const getFile = async (req, res) => {
     const { appId, fileName } = req.params
-    const mimeType = mime.lookup(fileName)
     const appDocsPath = path.resolve('./private/docs/application')
     const filePath = path.join(appDocsPath, appId, fileName)
     console.log(appDocsPath)
 
-    // Check if the file exists
-    if (fs.existsSync(filePath)) {
-        // Set the appropriate content type for a PDF file
-        res.contentType('application/pdf')
+    const mimeType = mime.lookup(fileName)
 
-        // Send the file as a response
-        res.sendFile(filePath)
+    if (mimeType) {
+        if (mimeType.includes('image')) {
+            const img = getImageBlob(filePath)
+            res.send(img)
+        } else if (mimeType.includes('pdf')) {
+            if (fs.existsSync(filePath)) {
+                res.contentType('application/pdf')
+
+                res.sendFile(filePath)
+            } else {
+                // File not found
+                res.status(404).send('File not found')
+            }
+        } else {
+            // Unsupported file type
+            res.status(400).send('Unsupported file type')
+        }
     } else {
-        // File not found
-        res.status(404).send('File not found')
+        // Unable to determine MIME type
+        res.status(400).send('Unable to determine file type')
     }
 }
 
