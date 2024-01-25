@@ -245,6 +245,8 @@ const setApprovalStatus = async (req, res) => {
                     (err, data) => {
                         if (err) {
                             reject(err)
+                        } else {
+                            resolve(data)
                         }
                     }
                 )
@@ -281,6 +283,15 @@ const setApprovalStatus = async (req, res) => {
                                 //     'Random Digits:',
                                 //     result.randomDigits
                                 // )
+                                console.log([
+                                    memberId,
+                                    membertype,
+                                    formattedDate,
+                                    contactId,
+                                    /* Use settingsId here */ settingsId,
+                                    result.hashedSHA,
+                                    result.hashedBcrypt,
+                                ])
 
                                 db.query(
                                     `INSERT INTO member_i (member_id, member_type, member_datecreated, member_contact_id, member_setting,member_accesskey,member_password) VALUES (?, ?, ?, ?, ?,?,?)`,
