@@ -337,13 +337,13 @@ const setApprovalStatus = async (req, res) => {
                         }
                     }
                 )
-            })
-
-            return res.status(200).json({
-                email: email,
-                access_key: access_key,
-                member_password: member_password,
-                institution: app_institution,
+            }).finally(() => {
+                return res.status(200).json({
+                    email: email,
+                    access_key: access_key,
+                    member_password: member_password,
+                    institution: app_institution,
+                })
             })
         }
 
