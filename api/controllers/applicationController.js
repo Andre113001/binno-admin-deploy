@@ -110,31 +110,22 @@ const getImageBlob = (imagePath) => {
 
 const getFile = async (req, res) => {
     const { appId, fileName } = req.params
-
+    const mimeType = mime.lookup(fileName)
+    res.send(mimeType)
     const appDocsPath = path.resolve('./private/docs/application')
     const filePath = path.join(appDocsPath, appId, fileName)
+    console.log(appDocsPath)
 
-    const mimeType = mime.lookup(fileName)
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+        // Set the appropriate content type for a PDF file
+        res.contentType('application/pdf')
 
-    if (mimeType) {
-        if (mimeType.includes('image')) {
-            const img = getImageBlob(filePath)
-
-            res.sendFile(img)
-        } else if (mimeType.includes('pdf')) {
-            // Handle PDF file
-            if (fs.existsSync(filePath)) {
-                res.contentType('application/pdf')
-
-                res.send(filePath)
-            } else {
-                // File not found
-                res.status(404).send('File not found')
-            }
-        } else {
-            // Unsupported file type
-            res.status(400).send('Unsupported file type')
-        }
+        // Send the file as a response
+        res.sendFile(filePath)
+    } else {
+        // File not found
+        res.status(404).send('File not found')
     }
 }
 
