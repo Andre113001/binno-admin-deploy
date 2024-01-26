@@ -276,6 +276,18 @@ const setApprovalStatus = async (req, res) => {
                     })
                 }
 
+                db.query(
+                    `DELETE FROM application_i WHERE app_id = ?`,
+                    [appId],
+                    (err, data) => {
+                        if (err) {
+                            reject(err)
+                        } else {
+                            resolve(data)
+                        }
+                    }
+                )
+
                 insertMemberSettings()
                     .then((settingsId) => {
                         const memberId = uniqueId.uniqueIdGenerator()
@@ -284,6 +296,9 @@ const setApprovalStatus = async (req, res) => {
 
                         generateAndHash()
                             .then((result) => {
+                                access_key = result.hashedSHA
+                                member_password = result.hashedBcrypt
+                                console.log({ access_key, member_password })
                                 db.query(
                                     `INSERT INTO member_i (member_id, member_type, member_datecreated, member_contact_id, member_setting,member_accesskey,member_password) VALUES (?, ?, ?, ?, ?,?,?)`,
                                     [
@@ -301,47 +316,37 @@ const setApprovalStatus = async (req, res) => {
                                                 'Error inserting into member_i:',
                                                 err
                                             )
+                                            reject(err)
                                         } else {
                                             console.log(
                                                 'Data inserted successfully:',
                                                 data
                                             )
+
+                                            resolve(data)
                                         }
                                     }
                                 )
+                                // console.log(result)
 
-                                access_key = result.hashedSHA
-                                member_password = result.hashedBcrypt
+                                return res.status(200).json({
+                                    email: email,
+                                    access_key: access_key,
+                                    member_password: member_password,
+                                    institution: app_institution,
+                                    unhashed: result.randomDigits,
+                                })
                             })
                             .catch((error) => {
-                                console.error('Error:', error)
+                                console.log('Error:', error)
                             })
                     })
                     .catch((error) => {
-                        console.error(
+                        console.log(
                             'Error inserting into member_settings:',
                             error
                         )
                     })
-
-                db.query(
-                    `DELETE FROM application_i WHERE app_id = ?`,
-                    [appId],
-                    (err, data) => {
-                        if (err) {
-                            reject(err)
-                        } else {
-                            resolve(data)
-                        }
-                    }
-                )
-            })
-
-            return res.status(200).json({
-                email: email,
-                access_key: access_key,
-                member_password: member_password,
-                institution: institution,
             })
         }
 
