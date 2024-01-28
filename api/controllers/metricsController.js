@@ -154,7 +154,7 @@ const getPendingMembers = async (req, res) => {
             )
         })
 
-        console.log(count)
+        // console.log(count)
         return res.status(200).json(count)
     } catch (error) {
         console.error(error)

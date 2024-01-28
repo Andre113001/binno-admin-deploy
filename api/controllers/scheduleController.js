@@ -50,7 +50,7 @@ const getSchedule = async (req, res) => {
         if (result.length > 0) {
             return res.status(200).json(result);
         } else {
-            return res.status(404).json({ result: 'Schedule does not exist' });
+            return res.status(200).json({ result: 'Schedule and Application does not exist' });
         }
     } catch (error) {
         console.error(error);
@@ -74,12 +74,12 @@ const getAllSchedule = async (req, res) => {
 
 // Post, Update Schedule
 const postSchedule = async (req, res) => {
-    const { schedDate, schedRequestId, schedZoomLink, schedStart, schedEnd } = req.body;
+    const { schedDate, schedAppId, schedZoomLink, schedStart, schedEnd } = req.body;
 
     try {
         const newId = uniqueId.uniqueIdGenerator();
             // Create a new schedule
-            db.query('INSERT INTO schedule_i (sched_id, sched_dateadded, sched_zoomlink, sched_date, sched_requestId, sched_timestart, sched_timedue) VALUES (?, NOW(), ?, ?, ?, ?, ?)', [newId, schedZoomLink, schedDate, schedRequestId, schedStart, schedEnd ], (createError, createRes) => {
+            db.query('INSERT INTO schedule_i (sched_id, sched_dateadded, sched_zoomlink, sched_date,sched_appid, sched_timestart, sched_timedue) VALUES (?, NOW(), ?, ?, ?, ?, ?)', [newId, schedZoomLink, schedDate, schedAppId, schedStart, schedEnd ], (createError, createRes) => {
                 if (createError) {
                     console.log(createError);
                     return res.status(500).json({ error: 'Failed to create schedule', reason: createError });
