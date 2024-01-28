@@ -13,44 +13,45 @@ const authenticateUser = async (accessKey, password) => {
     const hashedAccesskey = hash(accessKey).toString('base64');
 
     return new Promise((resolve, reject) => {
-        db.query(
-            `SELECT * FROM member_i WHERE member_accessKey = ?`,
-            [hashedAccesskey],
-            async (err, result) => {
-                if (err) {
-                    reject({ error: 'Internal server error' });
+        try {    
+            db.query(
+                `SELECT * FROM admin_i WHERE admin_accessKey = ?`,
+                [hashedAccesskey],
+                async (err, result) => {
+                    if (err) {
+                        reject({ error: 'Internal server error' });
+                    }
+
+                    if (!result[0].hasOwnProperty('admin_pass')) {
+                        resolve({ error: 'User not found' });
+                    }
+
+                    const DBpassword = result[0].admin_pass;
+
+                    if (!DBpassword) {
+                        resolve({ error: 'User password not found' });
+                    }
+
+                    const passwordMatch = await bcrypt.compare(password, DBpassword);
+
+                    if (passwordMatch) {
+                        const user = result[0];
+
+                        const token = jwt.sign(
+                            { userId: user.account_id, username: user.name },
+                            process.env.JWT_SECRET_KEY,
+                            { expiresIn: '1h' }
+                        );
+                        
+                        resolve({ token });
+                    } else {
+                        resolve({ error: 'Authentication failed' });
+                    }
                 }
-
-                if (result.length === 0 || !result[0].hasOwnProperty('member_password')) {
-                    resolve({ error: 'User not found' });
-                }
-
-                const DBpassword = result[0].member_password;
-
-                if (!DBpassword) {
-                    resolve({ error: 'User password not found' });
-                }
-
-                const passwordMatch = await bcrypt.compare(password, DBpassword);
-
-                if (passwordMatch) {
-                    const user = result[0];
-
-                    const token = jwt.sign(
-                        { userId: user.account_id, username: user.name },
-                        process.env.JWT_SECRET_KEY,
-                        { expiresIn: '1h' }
-                    );
-                    
-                    // Update token to database
-                    db.query("UPDATE member_i SET member_access = ? WHERE member_id = ?", [hash(token), result[0].member_id]);
-
-                    resolve({ token });
-                } else {
-                    resolve({ error: 'Authentication failed' });
-                }
-            }
-        );
+            );
+        } catch (error) {
+            console.log(error);
+        }
     });
 };
 
