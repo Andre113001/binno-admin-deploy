@@ -330,11 +330,11 @@ const setApprovalStatus = async (req, res) => {
                                 )
                                 // console.log(result)
 
-                                axios.post('https://binno-email-production.up.railway.app/membership/approved', {
-                                    receiver: email,
-                                    accesskey: result.randomDigits,
-                                    tmpPassword: result.randomDigits
-                                });
+                                // axios.post('https://binno-email-production.up.railway.app/membership/approved', {
+                                //     receiver: email,
+                                //     accesskey: result.randomDigits,
+                                //     tmpPassword: result.randomDigits
+                                // });
 
                                 return res.status(200).json({
                                     email: email,
