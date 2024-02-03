@@ -6,6 +6,8 @@ Backend server for **"admin"** users.
 
 ## localhost
 
+> Contact the collaborators to ask for a ".env" file.
+
 To start a localhost instance of the server, type...
 
 ```bash
