@@ -9,6 +9,7 @@ const path = require('path')
 const mime = require('mime-types')
 const axios = require('axios');
 
+// NOTE: should be renamed to createApplication - AL
 const uploadDocuments = async (req, res) => {
     try {
         // Assuming you have the applicationId available in your request or somewhere
@@ -39,8 +40,35 @@ const uploadDocuments = async (req, res) => {
         })
 
         // Insert into the database after files have been successfully uploaded
+        const createApplicationQuery = `
+            INSERT INTO application_i (
+                app_id,
+                app_dateadded,
+                app_institution,
+                app_email,
+                app_address,
+                app_type,
+                app_class,
+                app_docs_path
+            )
+            VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)
+        `;
+        // NOTE: new query for the new database - AL
+        // application type is removed from the new database
+        // const createApplicationQuery = `
+        //     INSERT INTO pending_application (
+        //         application_id,
+        //         date_created,
+        //         name,
+        //         email,
+        //         address,
+        //         classification,
+        //         docs_path
+        //     )
+        //     VALUES (?, NOW(), ?, ?, ?, ?, ?)
+        // `;
         db.query(
-            'INSERT INTO application_i (app_id, app_dateadded, app_institution, app_email, app_address, app_type, app_class, app_docs_path) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)',
+            createApplicationQuery,
             [
                 id,
                 institution,
@@ -64,10 +92,18 @@ const uploadDocuments = async (req, res) => {
     }
 }
 
+// NOTE: should be renamed to getPendingApplications() - AL
 const getApplications = async (req, res) => {
     try {
         const apps = await new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM application_i`, (err, data) => {
+            const getAllPendingApplicationQuery = `
+                SELECT * FROM application_i
+            `;
+            // NOTE: new query for the new database - AL
+            // const getAllPendingApplicationQuery = `
+            //     SELECT * FROM pending_application
+            // `;
+            db.query(getAllPendingApplicationQuery, (err, data) => {
                 if (err) {
                     reject(err)
                 } else {
@@ -141,6 +177,7 @@ const getFile = async (req, res) => {
     }
 }
 
+// NOTE: should be renamed to getApplicationById() or getApplicationDetailsById()
 const getApplicationDetails = async (req, res) => {
     const { appId } = req.params
 
@@ -152,10 +189,15 @@ const getApplicationDetails = async (req, res) => {
     console.log(imgPath)
     try {
         const app = await new Promise((resolve, reject) => {
+            const getApplicationByIdQuery = `
+                SELECT * FROM application_i WHERE app_id = ?
+            `;
+            // NOTE: new query for the new database - AL
+            // const getApplicationByIdQuery = `
+            //     SELECT * FROM pending_application WHERE application_id = ?
+            // `;
             db.query(
-                `SELECT * FROM application_i WHERE app_id = ?`,
-                [appId],
-                (err, data) => {
+                getApplicationByIdQuery, [appId], (err, data) => {
                     if (err) {
                         reject(err)
                     } else {
@@ -171,13 +213,6 @@ const getApplicationDetails = async (req, res) => {
         app.files = files
 
         return res.status(200).json(app)
-        const imageBlob = getImageBlob(imgPath)
-
-        // Set the appropriate content type for the image
-        res.setHeader('Content-Type', 'image/jpeg') // Adjust the content type based on your image format
-
-        // Send the image binary data as the response
-        res.send(imageBlob)
     } catch (error) {
         console.error('Error fetching image:', error)
         res.status(500).send('Internal Server Error')
@@ -189,8 +224,15 @@ const setApprovalStatus = async (req, res) => {
     try {
         if (!isApproved) {
             const fetchedData = await new Promise((resolve, reject) => {
+                const deleteApplicationQuery = `
+                    DELETE FROM application_i WHERE app_id = ?
+                `;
+                // NOTE: new query for the new database - AL
+                // const deleteApplicationQuery = `
+                //     DELETE FROM pending_application WHERE application_id = ?
+                // `;
                 db.query(
-                    `DELETE FROM application_i WHERE app_id = ?`,
+                    deleteApplicationQuery,
                     [appId],
                     (err, data) => {
                         if (err) {
@@ -203,11 +245,22 @@ const setApprovalStatus = async (req, res) => {
             })
 
             res.send('Deleted application.')
+
+        // WARN: the whole logic should be refactored.
+        // member_contact, member_i, and member_settings will merge into
+        // one table named "member_profile"
+        // - AL
         } else {
             const fetchedData = await new Promise((resolve, reject) => {
+                const getApplicationByIdQuery = `
+                    SELECT * FROM application_i WHERE app_id = ?'
+                `;
+                // NOTE: new query for the new database - AL
+                // const getApplicationByIdQuery = `
+                //     SELECT * FROM pending_application WHERE application_id = ?'
+                // `;
                 db.query(
-                    `SELECT * FROM application_i WHERE app_id = '${appId}'`,
-                    (err, data) => {
+                    getApplicationByIdQuery, [appId], (err, data) => {
                         if (err) {
                             reject('asd')
                         } else {
@@ -307,7 +360,7 @@ const setApprovalStatus = async (req, res) => {
                                         membertype,
                                         formattedDate,
                                         contactId,
-                                        /* Use settingsId here */ settingsId,
+                                        settingsId,
                                         result.hashedSHA,
                                         result.hashedBcrypt,
                                     ],
@@ -328,13 +381,6 @@ const setApprovalStatus = async (req, res) => {
                                         }
                                     }
                                 )
-                                // console.log(result)
-
-                                // axios.post('https://binno-email-production.up.railway.app/membership/approved', {
-                                //     receiver: email,
-                                //     accesskey: result.randomDigits,
-                                //     tmpPassword: result.randomDigits
-                                // });
 
                                 return res.status(200).json({
                                     email: email,
