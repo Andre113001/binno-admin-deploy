@@ -19,20 +19,28 @@ const getScheduleById = async (scheduleId) => {
 
 const getScheduleByDate = async (date) => {
     return new Promise((resolve, reject) => {
-        db.query(`SELECT 
-                    schedule_i.sched_id, 
-                    schedule_i.sched_date,
-                    schedule_i.sched_zoomlink,
-                    schedule_i.sched_appid,
-                    schedule_i.sched_timestart,
-                    schedule_i.sched_timedue,
-                    application_i.app_institution,
-                    application_i.app_email,
-                    application_i.app_address,
-                    application_i.app_type
-                    FROM schedule_i 
-                    INNER JOIN application_i ON schedule_i.sched_appid  = application_i.app_id 
-                    WHERE sched_date = ?`, [date], (err, result) => {
+        const getScheduleByDateQuery = `
+            SELECT
+            schedule_i.sched_id,
+            schedule_i.sched_date,
+            schedule_i.sched_zoomlink,
+            schedule_i.sched_appid,
+            schedule_i.sched_timestart,
+            schedule_i.sched_timedue,
+            application_i.app_institution,
+            application_i.app_email,
+            application_i.app_address,
+            application_i.app_type
+            FROM schedule_i
+            INNER JOIN application_i ON schedule_i.sched_appid  = application_i.app_id
+            WHERE sched_date = ?
+        `;
+        // NOTE: new query for the new database - AL
+        // const getScheduleByDateQuery = `
+        //     SELECT * FROM application_schedule
+        //     WHERE schedule_date = ?
+        // `;
+        db.query(getScheduleByDateQuery, [date], (err, result) => {
             if (err) {
                 reject(err);
             } else {
@@ -61,10 +69,12 @@ const getSchedule = async (req, res) => {
 const getAllSchedule = async (req, res) => {
     try {
         const result = db.query('SELECT * FROM schedule_i');
+        // NOTE: new query for the new database - AL
+        // const result = db.query('SELECT * FROM application_schedule');
         if (result.length > 0) {
-            return res.status(200).json({result : result});
+            return res.status(200).json({ result: result });
         } else {
-            return res.status(404).json({result : "No schedules"});
+            return res.status(404).json({ result: "No schedules" });
         }
     } catch (error) {
         console.error(error);
@@ -73,13 +83,40 @@ const getAllSchedule = async (req, res) => {
 }
 
 // Post, Update Schedule
+// NOTE: should rename to createSchedule() - AL
 const postSchedule = async (req, res) => {
     const { schedDate, schedAppId, schedZoomLink, schedStart, schedEnd } = req.body;
 
     try {
         const newId = uniqueId.uniqueIdGenerator();
-            // Create a new schedule
-            db.query('INSERT INTO schedule_i (sched_id, sched_dateadded, sched_zoomlink, sched_date,sched_appid, sched_timestart, sched_timedue) VALUES (?, NOW(), ?, ?, ?, ?, ?)', [newId, schedZoomLink, schedDate, schedAppId, schedStart, schedEnd ], (createError, createRes) => {
+        // Create a new schedule
+        const createScheduleQuery = `
+            INSERT INTO schedule_i (
+                sched_id,
+                sched_dateadded,
+                sched_zoomlink,
+                sched_date,
+                sched_appid,
+                sched_timestart,
+                sched_timedue
+            )
+            VALUES (?, NOW(), ?, ?, ?, ?, ?)
+        `;
+        // NOTE: new query for the new database - AL
+        // const createScheduleQuery = `
+        //     INSERT INTO application_schedule (
+        //         schedule_id,
+        //         date_created,
+        //         zoom_link,
+        //         schedule_date,
+        //         application_id,
+        //         time_start,
+        //         time_due
+        //     )
+        //     VALUES (?, NOW(), ?, ?, ?, ?, ?)
+        // `;
+        db.query(createScheduleQuery, [newId, schedZoomLink, schedDate, schedAppId, schedStart, schedEnd],
+            (createError, createRes) => {
                 if (createError) {
                     console.log(createError);
                     return res.status(500).json({ error: 'Failed to create schedule', reason: createError });
@@ -90,7 +127,8 @@ const postSchedule = async (req, res) => {
                 } else {
                     return res.status(500).json({ error: 'Failed to create schedule' });
                 }
-            });
+            }
+        );
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -105,18 +143,37 @@ const changeSchedule = async (req, res) => {
         const result = await getScheduleById(scheduleId);
 
         if (result.length > 0 && result[0].hasOwnProperty('sched_id')) {
-            db.query("UPDATE schedule_i SET sched_date = ?, sched_timestart = ?, sched_timedue = ?, sched_datemodified = NOW() WHERE sched_id = ?", [newDate, newStart, newEnd, sanitizeId(scheduleId)], (updateError, updateRes) => {
-                if (updateError) {
-                    console.log(updateError);
-                    return res.status(500).json({ error: 'Failed to change schedule' });
-                }
+            const changeScheduleQuery = `
+                UPDATE schedule_i SET
+                sched_date = ?,
+                sched_timestart = ?,
+                sched_timedue = ?,
+                sched_datemodified = NOW()
+                WHERE sched_id = ?
+            `;
+            // NOTE: new query for the new database - AL
+            // const changeScheduleQuery = `
+            //     UPDATE application_schedule SET
+            //     schedule_date = ?,
+            //     time_start = ?,
+            //     time_due = ?,
+            //     date_modified = NOW()
+            //     WHERE schedule_id = ?
+            // `;
+            db.query(changeScheduleQuery, [newDate, newStart, newEnd, sanitizeId(scheduleId)],
+                (updateError, updateRes) => {
+                    if (updateError) {
+                        console.log(updateError);
+                        return res.status(500).json({ error: 'Failed to change schedule' });
+                    }
 
-                if (updateRes.affectedRows > 0) {
-                    return res.status(200).json({ message: 'Schedule changed successfully' });
-                } else {
-                    return res.status(500).json({ error: 'Failed to change schedule' });
+                    if (updateRes.affectedRows > 0) {
+                        return res.status(200).json({ message: 'Schedule changed successfully' });
+                    } else {
+                        return res.status(500).json({ error: 'Failed to change schedule' });
+                    }
                 }
-            });
+            );
         } else {
             return res.status(404).json({ error: 'Schedule does not exist' });
         }
@@ -136,7 +193,16 @@ const deleteSchedule = async (req, res) => {
         const result = await getScheduleById(scheduleId);
 
         if (result.length > 0 && result[0].hasOwnProperty('sched_id')) {
-            db.query("UPDATE schedule_i SET sched_flag = 0 WHERE sched_id = ?", [sanitizeId(scheduleId)], (deleteError, deleteRes) => {
+            // NOTE: solt delete query - AL
+            const deleteScheduleQuery = `
+                UPDATE schedule_i SET sched_flag = 0 WHERE sched_id = ?
+            `;
+            // NOTE: new query for the new database - AL
+            // hard delete
+            // const deleteScheduleQuery = `
+            //     DELETE FROM application_schedule WHERE schedule_id = ?
+            // `;
+            db.query(deleteScheduleQuery, [sanitizeId(scheduleId)], (deleteError, deleteRes) => {
                 if (deleteError) {
                     console.log(deleteError);
                     return res.status(500).json({ error: 'Failed to delete schedule' });
