@@ -14,6 +14,7 @@ router.post(
 )
 router.get('/', applicationController.getApplications)
 router.get('/:appId', applicationController.getApplicationDetails)
+router.get('/get/:appId', applicationController.fetchApplicationById)
 router.get('/upload/:appId', applicationController.getApplicationUploads)
 router.get('/upload/:appId/:fileName', applicationController.getFile)
 router.patch('/', applicationController.setApprovalStatus)
