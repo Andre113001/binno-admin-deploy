@@ -37,6 +37,9 @@ const elementRoute = require('./api/routes/elementRoute')
 const scheduleRoute = require('./api/routes/scheduleRoute')
 const applicationRoute = require('./api/routes/applicationRoute')
 const metricRoute = require('./api/routes/metricRoute')
+const faqRoute = require('./api/routes/faqRoute')
+const uaqRoute = require('./api/routes/uaqRoute')
+
 
 // Use Routes
 app.use('/api/login', loginRoute)
@@ -44,8 +47,9 @@ app.use('/api/elements', elementRoute)
 app.use('/api/get', getRoute)
 app.use('/api/schedule', scheduleRoute)
 app.use('/api/application', applicationRoute)
-
 app.use('/api/metrics', metricRoute)
+app.use('/api/faq', faqRoute)
+app.use('/api/uaq', uaqRoute)
 
 // Server Listener
 app.listen(port, () => {
