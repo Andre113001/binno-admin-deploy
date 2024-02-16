@@ -246,10 +246,10 @@ const setApprovalStatus = async (req, res) => {
 
             res.send('Deleted application.')
 
-        // WARN: the whole logic should be refactored.
-        // member_contact, member_i, and member_settings will merge into
-        // one table named "member_profile"
-        // - AL
+            // WARN: the whole logic should be refactored.
+            // member_contact, member_i, and member_settings will merge into
+            // one table named "member_profile"
+            // - AL
         } else {
             const fetchedData = await new Promise((resolve, reject) => {
                 const getApplicationByIdQuery = `
@@ -410,6 +410,23 @@ const setApprovalStatus = async (req, res) => {
     }
 }
 
+const fetchApplicationById = async (req, res) => {
+    const { appId } = req.params;
+
+    try {
+        db.query('SELECT * FROM application_i WHERE app_id = ?', [sanitizeId(appId)], (err, result) => {
+            if (result.length > 0) {
+                res.json(result);
+            } else {
+                res.json('No application found');
+            }
+        })
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: error })
+    }
+}
+
 module.exports = {
     uploadDocuments,
     getApplications,
@@ -417,4 +434,5 @@ module.exports = {
     setApprovalStatus,
     getApplicationUploads,
     getFile,
+    fetchApplicationById,
 }
