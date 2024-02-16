@@ -4,7 +4,7 @@ const uniqueId = require("../middlewares/uniqueIdGeneratorMiddleware");
 const getAllFaq = async (request, response) => {
 	console.log("getAllFaq()");
 	try {
-		const getAllFaqQuery = "SELECT * FROM faq";
+		const getAllFaqQuery = "SELECT * FROM faq where archive = 0";
 		db.query(getAllFaqQuery, [], (err, result) => {
 			if (err) {
 				console.error(err);
@@ -18,7 +18,8 @@ const getAllFaq = async (request, response) => {
 				return response.status(500).json(err)
 			}
 		})
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		return response.status(500).json(error)
 	}
@@ -49,7 +50,8 @@ const createFaq = async (req, res) => {
 				return res.status(200).json({ success: 'FAQ created successfully' });
 			}
 		});
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		return res.status(500).json({ error });
 	}
@@ -60,9 +62,39 @@ const updateFaq = async () => {
 
 }
 
-const deleteFaq = async () => {
+const deleteFaq = async (req, res) => {
 	console.log("deleteFaq()");
+	const { faqId } = req.body;
+	console.log("faqId", faqId);
 
+	try {
+		const faqExist = await getFaqId(faqId);
+		console.log(faqExist);
+
+		if (faqExist.length > 0) {
+			const deleteFaqQuery = `
+				UPDATE faq SET
+				archive = 1
+				WHERE faq_id = ?
+			`;
+			db.query(deleteFaqQuery, faqId, (err, result) => {
+				if (err) {
+					console.error(err);
+					return res.status(500).json({ error: 'FAQ delete failed' });
+				}
+				else {
+					return res.status(200).json({ success: 'FAQ deleted successfully' });
+				}
+			});
+		}
+		else {
+			return res.status(500).json({ error: 'FAQ does not exist' });
+		}
+	}
+	catch (error) {
+		console.error(error);
+		return res.status(500).json({ error });
+	}
 }
 
 const getFaqId = async (faqId) => {
