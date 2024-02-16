@@ -1,4 +1,5 @@
-const db = require('../../database/db');
+const db = require("../../database/db");
+const uniqueId = require("../middlewares/uniqueIdGeneratorMiddleware");
 
 const getAllFaq = async (request, response) => {
 	console.log("getAllFaq()");
@@ -20,9 +21,35 @@ const getAllFaq = async (request, response) => {
 	}
 }
 
-const createFaq = async () => {
+const createFaq = async (req, res) => {
 	console.log("createFaq()");
+	const { question, answer } = req.body;
 
+	try {
+		const faqId = uniqueId.uniqueIdGenerator();
+		const createFaqQuery = `
+			insert into faq(
+				faq_id,
+				question,
+				answer,
+				date_created
+			)
+		   VALUES (?, ?, ?, NOW())
+		`;
+		db.query(createFaqQuery, [faqId, question, answer], (error, result) => {
+			if (error) {
+				console.error(error);
+				return res.status(500).json({ error: "Failed to create faq" });
+			}
+			else {
+				console.log("FAQ successfully stored in faq");
+				return res.status(200).json({ success: 'FAQ created successfully' });
+			}
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error });
+	}
 }
 
 const updateFaq = async () => {
@@ -36,7 +63,16 @@ const deleteFaq = async () => {
 }
 
 const getFaqId = async (faqId) => {
-
+	return new Promise((resolve, reject) => {
+		const getFaqIdQuery = "SELECT * FROM faq WHERE faq_id = ?";
+		db.query(getFaqIdQuery, [faqId], (err, result) => {
+			if (err) {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		});
+	});
 }
 
 module.exports = {
