@@ -31,16 +31,13 @@ const authenticateUser = async (accessKey, password) => {
                 }
 
                 const DBpassword = result[0].admin_pass;
-
                 if (!DBpassword) {
                     resolve({ error: 'User password not found' });
                 }
 
                 const passwordMatch = await bcrypt.compare(password, DBpassword);
-
                 if (passwordMatch) {
                     const user = result[0];
-
                     const token = jwt.sign(
                         { userId: user.account_id, username: user.name },
                         process.env.JWT_SECRET_KEY,
@@ -51,8 +48,7 @@ const authenticateUser = async (accessKey, password) => {
                 } else {
                     resolve({ error: 'Authentication failed' });
                 }
-            }
-            );
+            });
         } catch (error) {
             console.log(error);
         }
