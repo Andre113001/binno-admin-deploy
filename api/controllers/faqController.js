@@ -7,16 +7,19 @@ const getAllFaq = async (request, response) => {
 		const getAllFaqQuery = "SELECT * FROM faq";
 		db.query(getAllFaqQuery, [], (err, result) => {
 			if (err) {
+				console.error(err);
 				return response.status(500).json(err)
 			}
 
 			if (result.length > 0) {
 				return response.status(200).json(result)
 			} else {
+				console.error(err);
 				return response.status(500).json(err)
 			}
 		})
 	} catch (error) {
+		console.error(error);
 		return response.status(500).json(error)
 	}
 }
@@ -28,7 +31,7 @@ const createFaq = async (req, res) => {
 	try {
 		const faqId = uniqueId.uniqueIdGenerator();
 		const createFaqQuery = `
-			insert into faq(
+			INSERT INTO faq(
 				faq_id,
 				question,
 				answer,
