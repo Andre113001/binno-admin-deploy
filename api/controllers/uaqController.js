@@ -2,9 +2,13 @@ const db = require('../../database/db');
 const uniqueId = require("../middlewares/uniqueIdGeneratorMiddleware");
 
 const getAllUaq = async (request, response) => {
-	console.log("getAllUaq()");
+	console.log(`getAllUaq() from ${request.ip}`);
 	try {
-		const getAllUaqQuery = "SELECT * FROM uaq";
+		const getAllUaqQuery = `
+			SELECT * FROM uaq
+			WHERE archive = 0
+			ORDER BY date_created
+		`;
 		db.query(getAllUaqQuery, [], (err, result) => {
 			if (err) {
 				console.error(err);
@@ -25,8 +29,7 @@ const getAllUaq = async (request, response) => {
 }
 
 const createUaq = async (req, res) => {
-	console.log("createUaq()");
-
+	console.log(`createUaq() from ${req.ip}`);
 	const { question, answer } = req.body;
 
 	try {
@@ -46,7 +49,7 @@ const createUaq = async (req, res) => {
 				return res.status(500).json({ error: "Failed to create UAQ" });
 			}
 			else {
-				console.log("UAQ successfully stored in uaq");
+				console.log(`UAQ (${uaqId}) created successfully`);
 				return res.status(200).json({ success: "UAQ created successfully" });
 			}
 		});
@@ -56,18 +59,58 @@ const createUaq = async (req, res) => {
 	}
 }
 
-const updateUaq = async () => {
+const updateUaq = async (req, res) => {
 	console.log("editUaq()");
 
 }
 
-const deleteUaq = async () => {
-	console.log("deleteUaq()");
+const deleteUaq = async (req, res) => {
+	console.log(`deleteUaq() from ${req.ip}`);
+	const { uaqId } = req.body;
 
+	try {
+		const uaqExist = await getUaqId(uaqId);
+		if (uaqExist.length > 0) {
+			const deleteUaqQuery = `
+				UPDATE uaq SET
+				archive = 1
+				WHERE uaq_id = ?
+			`;
+			db.query(deleteUaqQuery, uaqId, (err, result) => {
+				if (err) {
+					console.error(err);
+					return res.status(500).json({ error: 'UAQ delete failed' });
+				}
+				else {
+					console.log(`UAQ (${uaqId}) successfully deleted in faq`);
+					return res.status(200).json({ success: 'UAQ deleted successfully' });
+				}
+			});
+		}
+		else {
+			console.log(`UAQ (${uaqId}) does not exist`);
+			return res.status(500).json({ error: 'UAQ does not exist' });
+		}
+	}
+	catch (error) {
+		console.error(error);
+		return res.status(500).json({ error });
+	}
 }
 
 const getUaqId = async (uaqId) => {
-
+	console.log(`getUaqId(${uaqId})`);
+	return new Promise((resolve, reject) => {
+		const getFaqIdQuery = "SELECT * FROM uaq WHERE uaq_id = ?";
+		db.query(getFaqIdQuery, [uaqId], (err, result) => {
+			if (err) {
+				reject(err);
+			}
+			else {
+				resolve(result);
+			}
+		});
+	});
 }
 
 module.exports = {
