@@ -57,7 +57,7 @@ const countMemberByType = (type) => {
     })
 }
 
-// WARN: obsolete for the new database - AL
+// WARN: to be refactored for the new database - AL
 const countPending = (type) => {
     return new Promise((resolve, reject) => {
         db.query(
@@ -143,8 +143,6 @@ const getCompanies = async (req, res) => {
     }
 }
 
-// WARN: obsolete for the new database
-// because post approval is not needed anymore - AL
 const getPendingPosts = async (req, res) => {
     try {
         const members = await countPending('post')
