@@ -60,8 +60,38 @@ const createUaq = async (req, res) => {
 }
 
 const updateUaq = async (req, res) => {
-	console.log("editUaq()");
+	console.log(`updateUaq() from ${req.ip}`);
+	const { uaqId, question, answer } = req.body
 
+	try {
+		const uaqExist = await getUaqId(uaqId);
+		if (uaqExist.length > 0) {
+			const updateUaqQuery = `
+				UPDATE uaq SET
+				question = ?,
+				answer = ?,
+				date_modified = NOW()
+				WHERE uaq_id = ?
+			`;
+			db.query(updateUaqQuery, [question, answer, uaqId], (error, result) => {
+				if (error) {
+					console.error(error);
+					return res.status(500).json({ error: "Failed to update uaq" });
+				}
+				else {
+					console.log(`UAQ (${uaqId}) successfully update in uaq`);
+					return res.status(200).json({ success: 'UAQ updated successfully' });
+				}
+			});
+		}
+		else {
+			console.log(`UAQ (${uaqId}) does not exist`);
+			return res.status(500).json({ error: "UAQ does not exist" });
+		}
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error });
+	}
 }
 
 const deleteUaq = async (req, res) => {
