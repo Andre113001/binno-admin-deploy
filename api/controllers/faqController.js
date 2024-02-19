@@ -2,9 +2,13 @@ const db = require("../../database/db");
 const uniqueId = require("../middlewares/uniqueIdGeneratorMiddleware");
 
 const getAllFaq = async (request, response) => {
-	console.log("getAllFaq()");
+	console.log(`getAllFaq() from ${request.ip}`);
 	try {
-		const getAllFaqQuery = "SELECT * FROM faq where archive = 0";
+		const getAllFaqQuery = `
+			SELECT * FROM faq
+			WHERE archive = 0
+			ORDER BY date_created
+		`;
 		db.query(getAllFaqQuery, [], (err, result) => {
 			if (err) {
 				console.error(err);
@@ -26,7 +30,7 @@ const getAllFaq = async (request, response) => {
 }
 
 const createFaq = async (req, res) => {
-	console.log("createFaq()");
+	console.log(`createFaq() from ${req.ip}`);
 	const { question, answer } = req.body;
 
 	try {
@@ -46,7 +50,7 @@ const createFaq = async (req, res) => {
 				return res.status(500).json({ error: "Failed to create faq" });
 			}
 			else {
-				console.log("FAQ successfully stored in faq");
+				console.log(`FAQ (${faqId}) successfully stored in faq`);
 				return res.status(200).json({ success: 'FAQ created successfully' });
 			}
 		});
@@ -57,19 +61,47 @@ const createFaq = async (req, res) => {
 	}
 }
 
-const updateFaq = async () => {
-	console.log("editFaq()");
-
-}
-
-const deleteFaq = async (req, res) => {
-	console.log("deleteFaq()");
-	const { faqId } = req.body;
-	console.log("faqId", faqId);
+const updateFaq = async (req, res) => {
+	console.log(`updateFaq() from ${req.ip}`);
+	const { faqId, question, answer } = req.body;
 
 	try {
 		const faqExist = await getFaqId(faqId);
-		console.log(faqExist);
+		if (faqExist.length > 0) {
+			const updateFaqQuery = `
+				UPDATE faq SET
+				question = ?,
+				answer = ?,
+				date_modified = NOW()
+				WHERE faq_id = ?
+			`;
+			db.query(updateFaqQuery, [question, answer, faqId], (error, result) => {
+				if (error) {
+					console.error(error);
+					return res.status(500).json({ error: "Failed to update faq" });
+				}
+				else {
+					console.log(`FAQ (${faqId}) successfully update in faq`);
+					return res.status(200).json({ success: 'FAQ updated successfully' });
+				}
+			});
+		}
+		else {
+			console.log(`FAQ (${faqId}) does not exist`);
+			return res.status(500).json({ error: 'FAQ does not exist' });
+		}
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error });
+	}
+}
+
+const deleteFaq = async (req, res) => {
+	console.log(`deleteFaq() from ${req.ip}`);
+	const { faqId } = req.body;
+
+	try {
+		const faqExist = await getFaqId(faqId);
 
 		if (faqExist.length > 0) {
 			const deleteFaqQuery = `
@@ -83,11 +115,13 @@ const deleteFaq = async (req, res) => {
 					return res.status(500).json({ error: 'FAQ delete failed' });
 				}
 				else {
+					console.log(`FAQ (${faqId}) successfully deleted in faq`);
 					return res.status(200).json({ success: 'FAQ deleted successfully' });
 				}
 			});
 		}
 		else {
+			console.log(`FAQ (${faqId}) does not exist`);
 			return res.status(500).json({ error: 'FAQ does not exist' });
 		}
 	}
@@ -98,12 +132,14 @@ const deleteFaq = async (req, res) => {
 }
 
 const getFaqId = async (faqId) => {
+	console.log(`getFaqId(${faqId})`);
 	return new Promise((resolve, reject) => {
 		const getFaqIdQuery = "SELECT * FROM faq WHERE faq_id = ?";
 		db.query(getFaqIdQuery, [faqId], (err, result) => {
 			if (err) {
 				reject(err)
-			} else {
+			}
+			else {
 				resolve(result)
 			}
 		});
