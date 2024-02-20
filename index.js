@@ -1,5 +1,6 @@
 const express = require('express')
 const dotenv = require('dotenv')
+const cors = require('cors')
 
 const app = express()
 
@@ -13,22 +14,23 @@ const urlencodedMiddleware = require('./api/middlewares/urlencodedMiddleware')
 const port = process.env.PORT
 
 // Use Middleware
-app.use(corsMiddleware)
+// app.use(corsMiddleware)
 app.use(jsonMiddleware)
 app.use(urlencodedMiddleware)
+app.use(cors());
 
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader(
         'Access-Control-Allow-Methods',
         'GET, POST, PUT, DELETE, PATCH'
-    )
+    );
     res.setHeader(
         'Access-Control-Allow-Headers',
         'Content-Type, Authorization, X-Requested-With'
-    )
-    next()
-})
+    );
+    next();
+});
 
 // Import Route Files
 const getRoute = require('./api/routes/getRoute')

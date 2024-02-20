@@ -41,5 +41,16 @@ router.get('/activities', async (req, res) => {
         }
     });
 });
+
+router.get('/activities/:member_id', async (req, res) => {
+    const { member_id } = req.params;
+    db.query("SELECT * FROM history_i WHERE history_author = ? ORDER BY history_datecreated DESC", [member_id], (err, result) => {
+        if (err) {
+            console.error(err);
+        } else {
+            res.send(result);
+        }
+    });
+});
   
   module.exports = router;
