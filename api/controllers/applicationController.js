@@ -381,6 +381,13 @@ const setApprovalStatus = async (req, res) => {
                                         }
                                     }
                                 )
+                                // console.log(result)
+
+                                // axios.post(`${process.env.EMAIL_DOMAIN}/membership/approved`, {
+                                //     receiver: email,
+                                //     accesskey: result.randomDigits,
+                                //     tmpPassword: result.randomDigits
+                                // });
 
                                 return res.status(200).json({
                                     email: email,
