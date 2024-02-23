@@ -1,6 +1,11 @@
 const db = require("../../database/db");
 const uniqueId = require("../middlewares/uniqueIdGeneratorMiddleware");
 
+/**
+* Retrieves all frequently asked questions (FAQs) from the database.
+*
+* @returns {Object} The HTTP response containing the retrieved FAQs or an error message.
+*/
 const getAllFaq = async (request, response) => {
 	console.log(`getAllFaq() from ${request.ip}`);
 	try {
@@ -17,7 +22,8 @@ const getAllFaq = async (request, response) => {
 
 			if (result.length > 0) {
 				return response.status(200).json(result)
-			} else {
+			}
+			else {
 				console.error(err);
 				return response.status(500).json(err)
 			}
@@ -29,6 +35,12 @@ const getAllFaq = async (request, response) => {
 	}
 }
 
+/**
+* Creates a new frequently asked question (FAQ) in the database.
+*
+* req.body - { question, answer }
+* @returns {Object} The HTTP response indicating success or failure in creating the FAQ.
+*/
 const createFaq = async (req, res) => {
 	console.log(`createFaq() from ${req.ip}`);
 	const { question, answer } = req.body;
@@ -61,6 +73,12 @@ const createFaq = async (req, res) => {
 	}
 }
 
+/**
+* Updates an existing frequently asked question (FAQ) in the database
+*
+* req.body - { faqId, question, answer }
+* @returns {Object} The HTTP response indicating success or failure in updating the FAQ.
+*/
 const updateFaq = async (req, res) => {
 	console.log(`updateFaq() from ${req.ip}`);
 	const { faqId, question, answer } = req.body;
@@ -90,12 +108,19 @@ const updateFaq = async (req, res) => {
 			console.log(`FAQ (${faqId}) does not exist`);
 			return res.status(500).json({ error: 'FAQ does not exist' });
 		}
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		return res.status(500).json({ error });
 	}
 }
 
+/**
+* Updates an existing frequently asked question (FAQ) in the database to be archive
+*
+* req.body - { faqId }
+* @returns {Object} The HTTP response indicating success or failure in archiving the FAQ.
+*/
 const deleteFaq = async (req, res) => {
 	console.log(`deleteFaq() from ${req.ip}`);
 	const { faqId } = req.body;
@@ -131,6 +156,12 @@ const deleteFaq = async (req, res) => {
 	}
 }
 
+/**
+* Retrieves a frequently asked question (FAQ) from the database based on its ID.
+*
+* @param {string} faqId - The unique identifier of the FAQ to retrieve.
+* @returns {Promise<Array>} A Promise that resolves to an array containing the retrieved FAQ or rejects with an error.
+*/
 const getFaqId = async (faqId) => {
 	console.log(`getFaqId(${faqId})`);
 	return new Promise((resolve, reject) => {

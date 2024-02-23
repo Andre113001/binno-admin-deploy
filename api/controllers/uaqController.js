@@ -1,6 +1,11 @@
 const db = require('../../database/db');
 const uniqueId = require("../middlewares/uniqueIdGeneratorMiddleware");
 
+/**
+* Retrieves all user asked questions (UAQs) from the database.
+*
+* @returns {Object} The HTTP response containing the retrieved UAQs or an error message.
+*/
 const getAllUaq = async (request, response) => {
 	console.log(`getAllUaq() from ${request.ip}`);
 	try {
@@ -17,17 +22,25 @@ const getAllUaq = async (request, response) => {
 
 			if (result.length > 0) {
 				return response.status(200).json(result)
-			} else {
+			}
+			else {
 				console.error(err);
 				return response.status(500).json(err)
 			}
 		})
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		return response.status(500).json(error)
 	}
 }
 
+/**
+* Creates a new user asked question (UAQ) in the database.
+*
+* req.body - { question, answer }
+* @returns {Object} The HTTP response indicating success or failure in creating the UAQ.
+*/
 const createUaq = async (req, res) => {
 	console.log(`createUaq() from ${req.ip}`);
 	const { question, answer } = req.body;
@@ -53,12 +66,19 @@ const createUaq = async (req, res) => {
 				return res.status(200).json({ success: "UAQ created successfully" });
 			}
 		});
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		return res.status(500).json({ error });
 	}
 }
 
+/**
+* Updates an existing user asked question (UAQ) in the database
+*
+* req.body - { uaqId, question, answer }
+* @returns {Object} The HTTP response indicating success or failure in updating the UAQ.
+*/
 const updateUaq = async (req, res) => {
 	console.log(`updateUaq() from ${req.ip}`);
 	const { uaqId, question, answer } = req.body
@@ -88,12 +108,19 @@ const updateUaq = async (req, res) => {
 			console.log(`UAQ (${uaqId}) does not exist`);
 			return res.status(500).json({ error: "UAQ does not exist" });
 		}
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		return res.status(500).json({ error });
 	}
 }
 
+/**
+* Updates an existing user asked question (UAQ) in the database to be archive
+*
+* req.body - { uaqId }
+* @returns {Object} The HTTP response indicating success or failure in archiving the UAQ.
+*/
 const deleteUaq = async (req, res) => {
 	console.log(`deleteUaq() from ${req.ip}`);
 	const { uaqId } = req.body;
@@ -128,6 +155,12 @@ const deleteUaq = async (req, res) => {
 	}
 }
 
+/**
+* Retrieves a user asked question (UAQ) from the database based on its ID.
+*
+* @param {string} uaqId - The unique identifier of the UAQ to retrieve.
+* @returns {Promise<Array>} A Promise that resolves to an array containing the retrieved UAQ or rejects with an error.
+*/
 const getUaqId = async (uaqId) => {
 	console.log(`getUaqId(${uaqId})`);
 	return new Promise((resolve, reject) => {
