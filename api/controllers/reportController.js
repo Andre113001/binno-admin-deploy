@@ -332,17 +332,21 @@ const getMembersStat = async (range) => {
             AND dates.d >= DATE_SUB(CURRENT_DATE, INTERVAL 1 WEEK) AND dates.d <= CURRENT_DATE
         ) AS subquery;`
 
-            recentCompanies = `SELECT member_id, setting_institution, setting_profilepic, setting_address FROM member_settings 
+            recentCompanies = `SELECT member_id, member_datecreated, setting_institution, setting_profilepic, setting_address 
+            FROM member_settings 
             INNER JOIN member_i ON member_i.member_setting = member_settings.setting_id 
-            WHERE member_type = 1 
+            WHERE member_type = 1
             AND setting_datecreated >= DATE_SUB(CURRENT_DATE, INTERVAL 1 WEEK) 
-            AND setting_datecreated <= CURRENT_DATE LIMIT 3;`
+            ORDER BY member_datecreated DESC 
+            LIMIT 3;`
 
-            recentEnablers = `SELECT member_id, setting_institution, setting_profilepic, setting_address FROM member_settings 
+            recentEnablers = `SELECT member_id, member_datecreated, setting_institution, setting_profilepic, setting_address 
+            FROM member_settings 
             INNER JOIN member_i ON member_i.member_setting = member_settings.setting_id 
-            WHERE member_type = 2 
+            WHERE member_type = 2
             AND setting_datecreated >= DATE_SUB(CURRENT_DATE, INTERVAL 1 WEEK) 
-            AND setting_datecreated <= CURRENT_DATE LIMIT 3;`
+            ORDER BY member_datecreated DESC 
+            LIMIT 3;`
 
             // dates = `SELECT *
             // FROM member_stat

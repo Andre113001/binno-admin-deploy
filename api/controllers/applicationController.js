@@ -347,7 +347,7 @@ const setApprovalStatus = async (req, res) => {
                                 );
                                 
                                 deleteFolderRecursive(result.app_docs_path);
-                                updateMemberStat(app_type);
+                                updateMemberStat(result.app_type);
 
                                 return res.json(true);
                             } else {
