@@ -38,4 +38,6 @@ const generateAndHash = async () => {
 
 module.exports = {
     generateAndHash,
+    hashToSHA256,
+    hashToBcrypt
 }
