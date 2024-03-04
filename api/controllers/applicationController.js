@@ -252,7 +252,11 @@ const setApprovalStatus = async (req, res) => {
                         try {
                             deleteFolderRecursive(folderPath)
 
-                            db.query(`DELETE FROM schedule_i WHERE sched_appid = ?`, [result.app_id])
+                            db.query(`DELETE FROM schedule_i WHERE sched_appid = ?`, [result.app_id], (err, result) => {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            })
 
                             db.query(
                                 `DELETE FROM application_i WHERE app_id = ?`,
