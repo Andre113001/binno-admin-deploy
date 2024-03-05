@@ -3,7 +3,7 @@ const db = require('../../database/db')
 const countField = (field_name) => {
     return new Promise((resolve, reject) => {
         db.query(
-            `SELECT COUNT(${field_name}_id) as count FROM ${field_name}_i`,
+            `SELECT COUNT(${field_name}_id) as count FROM ${field_name}_i WHERE ${field_name}_flag = 1`,
             (err, data) => {
                 if (err) {
                     reject(err)
@@ -32,7 +32,7 @@ const countEmailSubscriber = () => {
 const countMemberByType = (type) => {
     return new Promise((resolve, reject) => {
         db.query(
-            'SELECT COUNT(member_id) as count FROM `member_i` WHERE member_type = ?',
+            'SELECT COUNT(member_id) as count FROM `member_i` WHERE member_type = ? AND member_flag = 1',
             [type],
             (err, data) => {
                 if (err) {
@@ -47,7 +47,7 @@ const countMemberByType = (type) => {
 const countPending = (type) => {
     return new Promise((resolve, reject) => {
         db.query(
-            `SELECT COUNT(${type}_id) as count FROM ${type}_i WHERE ${type}_approval = 0`,
+            `SELECT COUNT(${type}_id) as count FROM ${type}_i WHERE ${type}_approval = 0 AND ${type}_flag = 1`,
             (err, data) => {
                 if (err) {
                     reject(err)
