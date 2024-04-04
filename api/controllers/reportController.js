@@ -410,7 +410,8 @@ const getMembersStat = async (range) => {
             //         FROM member_stat
             //         WHERE YEAR(stat_date) = YEAR(CURRENT_DATE)
             //         GROUP BY YEAR(stat_date), MONTH(stat_date);
-            //         `
+            //         `ode .
+            
             break;
         default:
             break;

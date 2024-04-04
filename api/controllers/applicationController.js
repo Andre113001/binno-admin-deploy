@@ -115,7 +115,6 @@ const getFile = async (req, res) => {
     const { appId, fileName } = req.params;
     const appDocsPath = path.resolve('./private/docs/application');
     const filePath = path.join(appDocsPath, appId, fileName);
-    // console.log(filePath);
 
     const mimeType = mime.lookup(fileName);
 
@@ -149,7 +148,6 @@ const getFile = async (req, res) => {
 const getApplicationDetails = async (req, res) => {
     const { appId } = req.params
 
-    // console.log(imgPath)
     try {
         const app = await new Promise((resolve, reject) => {
             db.query(
@@ -187,13 +185,7 @@ const getApplicationDetails = async (req, res) => {
         app.files = fileData;
 
         return res.status(200).json(app);
-        // const imageBlob = getImageBlob(imgPath)
 
-        // // Set the appropriate content type for the image
-        // res.setHeader('Content-Type', 'image/jpeg') // Adjust the content type based on your image format
-
-        // // Send the image binary data as the response
-        // res.send(imageBlob)
     } catch (error) {
         console.error('Error fetching image:', error)
         res.status(500).send('Internal Server Error')

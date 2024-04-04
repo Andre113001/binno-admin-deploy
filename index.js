@@ -41,6 +41,7 @@ const applicationRoute = require('./api/routes/applicationRoute')
 const metricRoute = require('./api/routes/metricRoute')
 const membershipRoute = require('./api/routes/membershipRoute')
 const reportsRoute = require('./api/routes/reportRoute')
+const faqRoute = require('./api/routes/faqRoute');
 
 // Use Routes
 app.use('/api/login', loginRoute)
@@ -51,6 +52,7 @@ app.use('/api/application', applicationRoute)
 app.use('/api/members', membershipRoute);
 app.use('/api/metrics', metricRoute);
 app.use('/api/reports', reportsRoute);
+app.use('/api/faq', faqRoute);
 
 // Server Listener
 app.listen(port, () => {
