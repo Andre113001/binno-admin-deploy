@@ -7,5 +7,4 @@ router.get('/fetch', faqController.readFaq);
 router.post('/edit', faqController.editFaq);
 router.post('/delete', faqController.deleteFaq);
 
-
 module.exports = router;
