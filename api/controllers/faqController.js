@@ -28,7 +28,7 @@ const uploadFaq = (req, res) => {
 
 const readFaq = (req, res) => {
     try {
-        db.query(`SELECT * FROM faq_i`, [], (err, result) => {
+        db.query(`SELECT * FROM faq_i WHERE faq_flag = 1`, [], (err, result) => {
             if (err) {
                 console.log(err);
             } else {
@@ -74,7 +74,7 @@ const deleteFaq = (req, res) => {
             if (err) {
                 console.log(err);
             } else {
-                res.json("Faq is deleted.");
+                res.json ({message: 'Faq is deleted.'});
             }
         })
     } catch (error) {
