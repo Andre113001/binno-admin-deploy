@@ -43,24 +43,28 @@ const readFaq = (req, res) => {
 
 
 const editFaq = (req, res) => {
-    const { faqId, title , content } = req.body;
-  
-    try {
-      db.query(`UPDATE faq_i SET faq_title = ?, faq_content = ? WHERE faq_id = ?`, [title, content , faqId], (err, result) => {
+  // Destructuring request body to get parameters
+  const { title, content, faqId } = req.body;
+
+  try {
+    // Database query to update FAQ entry
+    db.query(
+      `UPDATE faq_i SET faq_title = ?, faq_content = ? WHERE faq_id = ?`,
+      [title, content, faqId],
+      (err, result) => {
         if (err) {
           console.error(err);
           res.status(500).json({ error: 'Internal server error' });
         } else {
-     
           res.json({ message: 'Faq updated successfully!', updatedFaq: {} });
         }
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  };
-  
+      }
+    );
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 const deleteFaq = (req, res) => {
     const { faqId } = req.body;
