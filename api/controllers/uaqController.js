@@ -15,6 +15,26 @@ const readUaq = (req, res) => {
     }
 };
 
+
+const uploadUaq = (req, res) => {
+    const { email, content } = req.body;
+  
+    try {
+      db.query(`INSERT INTO uaq_i (uaq_dateadded, uaq_email, uaq_content) VALUES (NOW(), ?, ?)`, [email, content], (err, result) => {
+        if (err) {
+          console.error('Error adding FAQ:', err);
+          res.status(500).json({ message: 'Error adding FAQ' }); 
+        } else {
+          res.json('Upload is complete');
+        }
+      });
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      res.status(500).json({ message: 'Internal server error' }); 
+    }
+  };
+
+
 const deleteUaq = (req, res) => {
     const { uaqId } = req.body;
     try {
@@ -34,5 +54,6 @@ const deleteUaq = (req, res) => {
 
 module.exports = {
     readUaq,
-    deleteUaq
+    deleteUaq,
+    uploadUaq
 }
