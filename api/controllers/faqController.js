@@ -17,7 +17,7 @@ const uploadFaq = (req, res) => {
         console.error('Error adding FAQ:', err);
         res.status(500).json({ message: 'Error adding FAQ' }); 
       } else {
-        res.json('Upload is complete');
+        res.json( {message: 'Upload is complete'});
       }
     });
   } catch (error) {
