@@ -19,7 +19,7 @@ const uploadFaq = (req, res) => {
 
 const readFaq = (req, res) => {
     try {
-        db.query(`SELECT * FROM faq_i`, [], (err, result) => {
+        db.query(`SELECT * FROM faq_i WHERE faq_flag = 1`, [], (err, result) => {
             if (err) {
                 console.log(err);
             } else {
